@@ -188,15 +188,6 @@ public class Locator extends Region {
         for (Target el : targets) {
             double targetAngle = AngleUtils.getAngleFromXY(el.x, el.y, radius, radius, 0);
             diff = Math.abs(targetAngle - _angle);
-
-            System.out.println("====================================");
-            System.out.println("====================================");
-            System.out.println("TARGET: " + targetAngle);
-            System.out.println("ANGLE: " + _angle);
-            System.out.println("DIFF: " + diff);
-            System.out.println("====================================");
-            System.out.println("====================================");
-
             if (diff < minAngle) {
                 target = el;
                 minAngle = diff;
@@ -211,24 +202,42 @@ public class Locator extends Region {
                 for (int i = 0; i < 100; i++) {
                     Thread.sleep(100);
                     double angl = targetFinal.movingMode == 0 ? targetFinal.angle :
-                        AngleUtils.getAngleFromXY(targetFinal.x, targetFinal.y, radius, radius, 0);
-                    double currentDiff = Math.abs(angl - _angle);
-                    if(angl -_angle > 0 && angl - _angle <= 180) {
-                        _angle += currentDiff / count;
-                    } else {
-                        _angle -= currentDiff / count;
-                    }
-                    setAngle(_angle);
+                        AngleUtils.getAngleFromXY(targetFinal.x, targetFinal.y, radius, radius, 0) - 360;
+
+                    double absTargetAngle = Math.abs(angl), absAngle = _angle > 0 ? 360 - _angle : Math.abs(_angle);
+                    double currentDiff = Math.abs(absTargetAngle - absAngle);
 
                     System.out.println("====================================");
                     System.out.println("====================================");
-                    System.out.println("TARGET ANGLE: " + angl);
-                    System.out.println("ANGLE: " + _angle);
+                    System.out.println("TARGET ANGLE: " + absTargetAngle);
+                    System.out.println("LOCATOR ANGLE: " + absAngle);
                     System.out.println("DIFF: " + currentDiff);
-//                    System.out.println("TARGET ANGLE: " + (360 - angl));
+                    System.out.println("====================================");
+                    System.out.println("====================================");
+
+                    if(absAngle >= 270 && absAngle <= 360 && absTargetAngle >= 0 && absTargetAngle <= 90) {
+                        currentDiff = absTargetAngle + 360 - absAngle;
+                        _angle -= currentDiff / count;// против часовой
+                    } else if(absTargetAngle - absAngle > 0 && currentDiff <= 180) {
+                        _angle -= currentDiff / count;// против часовой
+                    } else {
+                        _angle += currentDiff / count;// по часовой
+                    }
+                    setAngle(_angle);
+
+//                    if (absTargetAngle > 360 - absAngle - 3 && absTargetAngle < 360 - absAngle + 3) {
+//                        return;
+//                    }
+
+//                    System.out.println("====================================");
+//                    System.out.println("====================================");
+//                    System.out.println("TARGET ANGLE: " + angl);
 //                    System.out.println("ANGLE: " + _angle);
-                    System.out.println("====================================");
-                    System.out.println("====================================");
+//                    System.out.println("DIFF: " + currentDiff);
+////                    System.out.println("TARGET ANGLE: " + (360 - angl));
+////                    System.out.println("ANGLE: " + _angle);
+//                    System.out.println("====================================");
+//                    System.out.println("====================================");
 
                 }
 
