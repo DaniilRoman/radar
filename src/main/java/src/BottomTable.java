@@ -42,6 +42,8 @@ public class BottomTable extends Region {
 
     // ******************** Constructors **************************************
     public BottomTable(Locator locator) {
+        locator.setBottomTable(this);
+
         this.locator = locator;
         Rectangle rect1 = new Rectangle(500, height);
         this.addTargetFunc = locator::addNewTarget;
@@ -69,6 +71,10 @@ public class BottomTable extends Region {
         pane.setPrefSize(500, 50);
         getChildren().setAll(pane);
         getNewRaw();
+    }
+
+    public void setDisableOnScBtn(int index, boolean isDisable) {
+        scBtns.get(index).setDisable(isDisable);
     }
 
     private void getNewRaw() {
@@ -123,8 +129,17 @@ public class BottomTable extends Region {
             int angle = Integer.valueOf(firstInputs.get(i).getText());
             double distance = Double.valueOf(secondInputs.get(i).getText());
 
-            locator.onAutoBtnClicked();
+            locator.onAutoClicked();
         });
+
+        btn3.addEventHandler(MouseEvent.MOUSE_CLICKED, mouseEvent -> {
+            locator.onRuClicked();
+        });
+
+        btn4.addEventHandler(MouseEvent.MOUSE_CLICKED, mouseEvent -> {
+            locator.onScClicked();
+        });
+
 //        textField1.textProperty().addListener((obs, oldText, newText) -> {
 //            System.out.println(newText);
 //        });

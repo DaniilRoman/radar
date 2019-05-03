@@ -63,6 +63,7 @@ public class Locator extends Region {
     private boolean scTurnOn = false;
     private boolean isLocatorMoving;
     private Future locatorMovingFuture;
+    private BottomTable bottomTable;
 
     // ******************** Constructors **************************************
     public Locator(Consumer<Boolean> scDisableHook) throws Exception {
@@ -81,6 +82,8 @@ public class Locator extends Region {
         initGraphics();
         registerListeners();
     }
+
+    public void setBottomTable(BottomTable table) { this.bottomTable = table;  }
 
 
     // ******************** Initialization ************************************
@@ -137,7 +140,7 @@ public class Locator extends Region {
 //        Target newTarget = addNewTarget(angle, radius);
 //        newTarget.startTarget();
         targetForMoving.startTarget();
-        onAutoBtnClicked(targetForMoving);
+        onKpOnRightPanelClicked(targetForMoving);
     }
 
     public Target addNewTarget(int angle, double distance) {
@@ -160,8 +163,9 @@ public class Locator extends Region {
 
         locatorMovingFuture = Executors.newFixedThreadPool(1).submit(() -> {
             try {
-                for (int i = 0; i < 1000; i++) {
+                while (true) {
                     Thread.sleep(100);
+                    System.out.println(AngleUtils.getAngleFromXY(targetFinal.x, targetFinal.y, radius, radius, 0) - 360);
                     double angl = targetFinal.movingMode == 0 ? targetFinal.angle :
                             AngleUtils.getAngleFromXY(targetFinal.x, targetFinal.y, radius, radius, 0) - 360;
 
@@ -192,11 +196,7 @@ public class Locator extends Region {
         });
     }
 
-
-    public void onAutoBtnClicked() {
-    }
-
-    public void onAutoBtnClicked(Target targetForMoving) {
+    public void onKpOnRightPanelClicked(Target targetForMoving) {
         Target target = targets.get(0);
         isLocatorMoving = true;
         target = targetForMoving;
@@ -245,7 +245,8 @@ public class Locator extends Region {
                     }
                     setAngle(_angle);
                     if (absTargetAngle > absAngle - topAngle && absTargetAngle < absAngle + topAngle) {
-                        scDisableHook.accept(false);
+//                        scDisableHook.accept(false);
+                        bottomTable.setDisableOnScBtn(targets.indexOf(targetForMoving), false);
                         scTurnOn = true;
                     }
 
