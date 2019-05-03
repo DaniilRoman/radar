@@ -18,8 +18,9 @@ public class BottomTable extends Region {
     private int currentRaw = 1;
     private List<TextField> firstInputs = new ArrayList<>();
     private List<TextField> secondInputs = new ArrayList<>();
-    private List<Button> scBtns = new ArrayList<>();
     private List<Button> kpBtns = new ArrayList<>();
+    private List<Button> scBtns = new ArrayList<>();
+    private List<Button> autoBtns = new ArrayList<>();
     private List<Button> ruBtns = new ArrayList<>();
     private int currentOffsetY = 10;
     private int fieldW = 70;
@@ -59,7 +60,7 @@ public class BottomTable extends Region {
             getNewRaw();
         });
 
-        test.relocate(400, 10);
+        test.relocate(430, 10);
         ///////////////////////////////////////////////////////////////////////////////////
 
         pane = new Pane(scrollPane);
@@ -82,23 +83,27 @@ public class BottomTable extends Region {
         btn2.setPrefSize(btnW, rawHeight);
         Button btn3 = new Button("РУ");
         btn3.setPrefSize(btnW, rawHeight);
+        Button btn4 = new Button("СЦ");
+        btn4.setPrefSize(btnW, rawHeight);
+        btn4.setDisable(true);
 
         textField1.relocate(currentOffset, currentOffsetY);
         textField2.relocate(currentOffset += fieldWidth, currentOffsetY);
         btn1.relocate(currentOffset += fieldWidth, currentOffsetY);
         btn2.relocate(currentOffset += btnWidth, currentOffsetY);
         btn3.relocate(currentOffset += btnWidth, currentOffsetY);
+        btn4.relocate(currentOffset += btnWidth, currentOffsetY);
         currentOffset = startedOffset;
 
         firstInputs.add(textField1);
         secondInputs.add(textField2);
-        scBtns.add(btn1);
-        kpBtns.add(btn2);
+        kpBtns.add(btn1);
+        autoBtns.add(btn2);
         ruBtns.add(btn3);
-
+        scBtns.add(btn4);
 
         btn1.addEventHandler(MouseEvent.MOUSE_CLICKED, mouseEvent -> {
-            int i = scBtns.indexOf(btn1);
+            int i = kpBtns.indexOf(btn1);
             int angle = Integer.valueOf(firstInputs.get(i).getText());
             double distance = Double.valueOf(secondInputs.get(i).getText());
 
@@ -108,13 +113,13 @@ public class BottomTable extends Region {
                 addTargetFunc.apply(angle, distance);
             }
 
-            scBtns.get(i).setDisable(true);
+            kpBtns.get(i).setDisable(true);
             firstInputs.get(i).setDisable(true);
             secondInputs.get(i).setDisable(true);
         });
 
         btn2.addEventHandler(MouseEvent.MOUSE_CLICKED, mouseEvent -> {
-            int i = kpBtns.indexOf(btn2);
+            int i = autoBtns.indexOf(btn2);
             int angle = Integer.valueOf(firstInputs.get(i).getText());
             double distance = Double.valueOf(secondInputs.get(i).getText());
 
@@ -126,7 +131,7 @@ public class BottomTable extends Region {
 
 //        scrollPane.setVvalue(1.0);
 
-        pane.getChildren().addAll(textField1, textField2, btn1, btn2, btn3);
+        pane.getChildren().addAll(textField1, textField2, btn1, btn2, btn3, btn4);
 
         currentOffsetY += startedOffset + rawHeight;
 

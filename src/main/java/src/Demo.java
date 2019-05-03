@@ -10,10 +10,11 @@ import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 
+import java.util.Arrays;
 
 
 public class Demo extends Application {
-    private Locator locatorPanel = new Locator();
+    private Locator locatorPanel = new Locator(this::scDisableHook);
     private Controller controllerPanel = new Controller((Double angle) -> locatorPanel.setAngle(angle));
     private Button kpBtn = new Button();
     private Label kpLabel = new Label("     КП");
@@ -32,9 +33,9 @@ public class Demo extends Application {
     @Override
     public void init() {
         kpBtn.addEventHandler(MouseEvent.MOUSE_CLICKED, mouseEvent -> { locatorPanel.onKpClicked(); });
-//        autoBtn.addEventHandler(MouseEvent.MOUSE_CLICKED, mouseEvent -> { locatorPanel.onAutoClicked(); });
-//        scBtn.addEventHandler(MouseEvent.MOUSE_CLICKED, mouseEvent -> { locatorPanel.onScClicked(); });
-//        ruBtn.addEventHandler(MouseEvent.MOUSE_CLICKED, mouseEvent -> { locatorPanel.onRuClicked(); });
+        autoBtn.addEventHandler(MouseEvent.MOUSE_CLICKED, mouseEvent -> { locatorPanel.onAutoClicked(); });
+        scBtn.addEventHandler(MouseEvent.MOUSE_CLICKED, mouseEvent -> { locatorPanel.onScClicked(); });
+        ruBtn.addEventHandler(MouseEvent.MOUSE_CLICKED, mouseEvent -> { locatorPanel.onRuClicked(); });
         locatorPanel.setPrefSize(400, 400);
         controllerPanel.setPrefSize(150, 150);
         bottomTable.setPrefSize(500, 150);
@@ -44,22 +45,8 @@ public class Demo extends Application {
 
     @Override
     public void start(Stage stage) {
-        kpBtn.setPrefSize(50,50);
-        kpBtn.setStyle("-fx-background-color: red;" +
-                "-fx-border-radius: 5;" +
-                "-fx-border-color: black;");
-        autoBtn.setPrefSize(50,50);
-        autoBtn.setStyle("-fx-background-color: blue;" +
-                "-fx-border-radius: 5;" +
-                "-fx-border-color: black;");
-        ruBtn.setPrefSize(50,50);
-        ruBtn.setStyle("-fx-background-color: red;" +
-                "-fx-border-radius: 5;" +
-                "-fx-border-color: black;");
-        kpBtn.setPrefSize(50,50);
-        kpBtn.setStyle("-fx-background-color: red;" +
-                "-fx-border-radius: 5;" +
-                "-fx-border-color: black;");
+        Arrays.asList(kpBtn, autoBtn, ruBtn, scBtn).forEach(btn -> btn.getStyleClass().add("right-panel_btn"));
+        Arrays.asList(autoBtn).forEach(btn -> btn.getStyleClass().add("blue"));
         BorderPane pane = new BorderPane();
         pane.setCenter(locatorPanel);
         pane.setRight(getRightPane());
@@ -87,8 +74,6 @@ public class Demo extends Application {
         topRightPane.setBottom(autoLabel);
         topPane.setLeft(topLeftPane); topPane.setRight(topRightPane);
         BorderPane bottomPane = new BorderPane();
-        BorderPane bottomLeftPane = new BorderPane();
-        bottomLeftPane.setTop(scBtn);
         BorderPane bottomRightPane = new BorderPane();
         bottomRightPane.setBottom(ruLable);
         bottomRightPane.setTop(ruBtn);
@@ -100,7 +85,14 @@ public class Demo extends Application {
         paneForReturn.setBottom(bottomPane);
         BorderPane.setMargin(controllerPanel, new Insets(100, 0, 100,  0));
         paneForReturn.setCenter(controllerPanel);
+
+        scBtn.setDisable(true);
+
         return paneForReturn;
+    }
+
+    private void scDisableHook(Boolean isDisable) {
+        scBtn.setDisable(isDisable);
     }
 
     @Override

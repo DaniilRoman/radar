@@ -17,6 +17,8 @@ import javafx.scene.transform.Rotate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.function.Consumer;
 
 
 @DefaultProperty("children")
@@ -52,16 +54,19 @@ public class Locator extends Region {
 
     private Target targetForMoving;
 
-
+    private Consumer<Boolean> scDisableHook;
 
 
     private int topAngle = 52;
     private int bottomAngle = 360 - topAngle;
 
-    private boolean scTurnOn = true;
+    private boolean scTurnOn = false;
+    private boolean isLocatorMoving;
+    private Future locatorMovingFuture;
 
     // ******************** Constructors **************************************
-    public Locator() throws Exception {
+    public Locator(Consumer<Boolean> scDisableHook) throws Exception {
+        this.scDisableHook = scDisableHook;
         getStylesheets().add(Locator.class.getResource("radar.css").toExternalForm());
         _backgroundPaint = Color.rgb(190, 200, 93);
         _foregroundPaint = new LinearGradient(0, 0, 0, 1, true, CycleMethod.NO_CYCLE,
@@ -145,41 +150,55 @@ public class Locator extends Region {
     }
 
     public void onAutoClicked() {
+        onRuClicked();
 
-        if (scTurnOn) {
-            Target target = targets.get(0);
-            Executors.newFixedThreadPool(1).submit(() -> {
-                try {
-                    if (_angle - 30 <= target.angle && target.angle <= _angle + 30) {
-                        if (target.angle >= _angle - 30 && target.angle <= _angle) {
-                            double diffAngle = Math.abs(_angle - target.angle);
-                            for (int i = 0; i < 10; i++) {
-                                Thread.sleep(400);
-                                setAngle(_angle - diffAngle / 10);
+        isLocatorMoving = true;
+        Target target = targetForMoving;
+
+        final Target targetFinal = target;
+        int count = 10;
+
+        locatorMovingFuture = Executors.newFixedThreadPool(1).submit(() -> {
+            try {
+                for (int i = 0; i < 1000; i++) {
+                    Thread.sleep(100);
+                    double angl = targetFinal.movingMode == 0 ? targetFinal.angle :
+                            AngleUtils.getAngleFromXY(targetFinal.x, targetFinal.y, radius, radius, 0) - 360;
+
+                    double absTargetAngle = Math.abs(angl), absAngle = _angle > 0 ? 360 - _angle : Math.abs(_angle);
+                    double currentDiff = Math.abs(absTargetAngle - absAngle);
+
+                    if (absTargetAngle > absAngle - 30 && absTargetAngle > absAngle + 30) {
+                        for (int j = 0; j < count; j++) {
+                            Thread.sleep(100);
+                            if (absAngle >= 270 && absAngle <= 360 && absTargetAngle >= 0 && absTargetAngle <= 90) {
+                                currentDiff = absTargetAngle + 360 - absAngle;
+                                _angle -= currentDiff / count;// против часовой
+                            } else if (absTargetAngle - absAngle > 0 && currentDiff <= 180) {
+                                System.out.println(_angle);
+                                _angle -= currentDiff / count;// против часовой
+                            } else {
+                                _angle += currentDiff / count;// по часовой
                             }
-                            setAngle(target.angle);
-                        }
-                        if (target.angle <= _angle + 30 && target.angle >= _angle) {
-                            double diffAngle = Math.abs(target.angle - _angle);
-                            for (int i = 0; i < 10; i++) {
-                                Thread.sleep(400);
-                                setAngle(_angle + diffAngle / 10);
-                            }
-                            setAngle(target.angle);
+                            setAngle(_angle);
+
                         }
                     }
-                } catch (InterruptedException ex) {
-                    ex.printStackTrace();
                 }
-            });
-        }
 
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        });
     }
 
 
-    public void onAutoBtnClicked() {}
+    public void onAutoBtnClicked() {
+    }
+
     public void onAutoBtnClicked(Target targetForMoving) {
         Target target = targets.get(0);
+        isLocatorMoving = true;
         target = targetForMoving;
 
         double minAngle = 500;
@@ -195,49 +214,40 @@ public class Locator extends Region {
         }
 
         final Target targetFinal = target;
+        this.targetForMoving = targetFinal;
         int count = diff < 100 ? 10 : 20;
 
-        Executors.newFixedThreadPool(1).submit(() -> {
+        locatorMovingFuture = Executors.newFixedThreadPool(1).submit(() -> {
             try {
                 for (int i = 0; i < 100; i++) {
                     Thread.sleep(100);
                     double angl = targetFinal.movingMode == 0 ? targetFinal.angle :
-                        AngleUtils.getAngleFromXY(targetFinal.x, targetFinal.y, radius, radius, 0) - 360;
+                            AngleUtils.getAngleFromXY(targetFinal.x, targetFinal.y, radius, radius, 0) - 360;
 
                     double absTargetAngle = Math.abs(angl), absAngle = _angle > 0 ? 360 - _angle : Math.abs(_angle);
                     double currentDiff = Math.abs(absTargetAngle - absAngle);
 
-                    System.out.println("====================================");
-                    System.out.println("====================================");
-                    System.out.println("TARGET ANGLE: " + absTargetAngle);
-                    System.out.println("LOCATOR ANGLE: " + absAngle);
-                    System.out.println("DIFF: " + currentDiff);
-                    System.out.println("====================================");
-                    System.out.println("====================================");
+//                    System.out.println("====================================");
+//                    System.out.println("====================================");
+//                    System.out.println("TARGET ANGLE: " + absTargetAngle);
+//                    System.out.println("LOCATOR ANGLE: " + absAngle);
+//                    System.out.println("DIFF: " + currentDiff);
+//                    System.out.println("====================================");
+//                    System.out.println("====================================");
 
-                    if(absAngle >= 270 && absAngle <= 360 && absTargetAngle >= 0 && absTargetAngle <= 90) {
+                    if (absAngle >= 270 && absAngle <= 360 && absTargetAngle >= 0 && absTargetAngle <= 90) {
                         currentDiff = absTargetAngle + 360 - absAngle;
                         _angle -= currentDiff / count;// против часовой
-                    } else if(absTargetAngle - absAngle > 0 && currentDiff <= 180) {
+                    } else if (absTargetAngle - absAngle > 0 && currentDiff <= 180) {
                         _angle -= currentDiff / count;// против часовой
                     } else {
                         _angle += currentDiff / count;// по часовой
                     }
                     setAngle(_angle);
-
-//                    if (absTargetAngle > 360 - absAngle - 3 && absTargetAngle < 360 - absAngle + 3) {
-//                        return;
-//                    }
-
-//                    System.out.println("====================================");
-//                    System.out.println("====================================");
-//                    System.out.println("TARGET ANGLE: " + angl);
-//                    System.out.println("ANGLE: " + _angle);
-//                    System.out.println("DIFF: " + currentDiff);
-////                    System.out.println("TARGET ANGLE: " + (360 - angl));
-////                    System.out.println("ANGLE: " + _angle);
-//                    System.out.println("====================================");
-//                    System.out.println("====================================");
+                    if (absTargetAngle > absAngle - topAngle && absTargetAngle < absAngle + topAngle) {
+                        scDisableHook.accept(false);
+                        scTurnOn = true;
+                    }
 
                 }
 
@@ -246,14 +256,21 @@ public class Locator extends Region {
             }
         });
 
+
     }
 
+    public void setLocatorMoving(boolean isLocatorMoving) {
+        this.isLocatorMoving = isLocatorMoving;
+    }
 
     public void onScClicked() {
         scTurnOn = true;
     }
-    public void onRuClicked() {
 
+    public void onRuClicked() {
+        if (scTurnOn && locatorMovingFuture != null) {
+            locatorMovingFuture.cancel(true);
+        }
     }
 
     // ******************** Resizing ******************************************
@@ -310,11 +327,13 @@ public class Locator extends Region {
             upperRect.relocate(size * 0.5, size * 0.02);
 
             //Center
-            double w2 = size*0.06, w1 = size*0.01;
-            centerHorRect.setWidth(w2); centerHorRect.setHeight(w1);
-            centerHorRect.relocate(size * 0.5 - w2*0.5, size * 0.5 - w1*0.5);
-            centerVerRect.setWidth(w1); centerVerRect.setHeight(w2);
-            centerVerRect.relocate(size * 0.5 - w1*0.5, size * 0.5 - w2*0.5);
+            double w2 = size * 0.06, w1 = size * 0.01;
+            centerHorRect.setWidth(w2);
+            centerHorRect.setHeight(w1);
+            centerHorRect.relocate(size * 0.5 - w2 * 0.5, size * 0.5 - w1 * 0.5);
+            centerVerRect.setWidth(w1);
+            centerVerRect.setHeight(w2);
+            centerVerRect.relocate(size * 0.5 - w1 * 0.5, size * 0.5 - w2 * 0.5);
 
             redraw();
         }
