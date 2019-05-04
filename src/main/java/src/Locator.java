@@ -156,9 +156,7 @@ public class Locator extends Region {
         onRuClicked();
 
         isLocatorMoving = true;
-        Target target = targetForMoving;
-
-        final Target targetFinal = target;
+        final Target targetFinal = targetForMoving;
         int count = 10;
 
         locatorMovingFuture = Executors.newFixedThreadPool(1).submit(() -> {
@@ -172,7 +170,7 @@ public class Locator extends Region {
                     double absTargetAngle = Math.abs(angl), absAngle = _angle > 0 ? 360 - _angle : Math.abs(_angle);
                     double currentDiff = Math.abs(absTargetAngle - absAngle);
 
-                    if (absTargetAngle > absAngle - 30 && absTargetAngle > absAngle + 30) {
+                    if (absTargetAngle < absAngle - 30 || absTargetAngle > absAngle + 30) {
                         for (int j = 0; j < count; j++) {
                             Thread.sleep(100);
                             if (absAngle >= 270 && absAngle <= 360 && absTargetAngle >= 0 && absTargetAngle <= 90) {
